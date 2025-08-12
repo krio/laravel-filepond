@@ -46,4 +46,6 @@ return [
     'chunks_path' => env('FILEPOND_CHUNKS_PATH', 'filepond' . DIRECTORY_SEPARATOR . 'chunks'),
 
     'input_name' => 'file',
+
+    'allowed_extensions' => ['gif', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'psd'],
 ];

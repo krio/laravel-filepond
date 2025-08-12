@@ -19,9 +19,12 @@ class FilepondController extends BaseController
      */
     private $filepond;
 
+    private $allowedExtensions;
+
     public function __construct(Filepond $filepond)
     {
         $this->filepond = $filepond;
+        $this->allowedExtensions = config('filepond.allowed_extensions', ['gif', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'psd']);
     }
 
     /**
@@ -43,6 +46,14 @@ class FilepondController extends BaseController
         $file = is_array($input) ? $input[0] : $input;
         $path = config('filepond.temporary_files_path', 'filepond');
         $disk = config('filepond.temporary_files_disk', 'local');
+
+        $originalExtension = $file->getClientOriginalExtension();
+        $fileExtension = $file->extension();
+
+        if ($originalExtension !== $fileExtension
+            || !in_array($fileExtension, $this->allowedExtensions)) {
+            abort(500, 'Bad file extension');
+        }
 
         if (!($newFile = $file->storeAs($path . DIRECTORY_SEPARATOR . Str::random(), $file->getClientOriginalName(), $disk))) {
             return Response::make('Could not save file', 500, [
@@ -72,9 +83,13 @@ class FilepondController extends BaseController
         if ($request->header('Upload-Name')) {
             $fileName = pathinfo($request->header('Upload-Name'), PATHINFO_FILENAME);
             $ext = pathinfo($request->header('Upload-Name'), PATHINFO_EXTENSION);
-            $baseName = $fileName.'-'.$randomId.'.'.$ext;
+            $baseName = $fileName . '-' . $randomId . '.' . $ext;
         }
         $fileLocation = $path . DIRECTORY_SEPARATOR . $baseName;
+
+        if (!in_array(pathinfo($fileLocation, PATHINFO_EXTENSION), $this->allowedExtensions)) {
+            abort(500, 'Bad file extension');
+        }
 
         $fileCreated = Storage::disk($disk)
             ->put($fileLocation, '');
@@ -124,6 +139,10 @@ class FilepondController extends BaseController
         // Validate patch info
         if (!is_numeric($offset) || !is_numeric($length)) {
             abort(400, 'Invalid chunk length or offset');
+        }
+
+        if (!in_array(pathinfo($finalFilePath, PATHINFO_EXTENSION), $this->allowedExtensions)) {
+            abort(500, 'Bad file extension');
         }
 
         // Store chunk
@@ -198,7 +217,7 @@ class FilepondController extends BaseController
      *
      * @return mixed
      */
-    public function delete(Request $request)
+    /*public function delete(Request $request)
     {
         $filePath = $this->filepond->getPathFromServerId($request->getContent());
         $folderPath = dirname($filePath);
@@ -211,6 +230,6 @@ class FilepondController extends BaseController
         return Response::make('', 500, [
             'Content-Type' => 'text/plain',
         ]);
-    }
+    }*/
 }
 
