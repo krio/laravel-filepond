@@ -50,8 +50,8 @@ class FilepondController extends BaseController
         $originalExtension = $file->getClientOriginalExtension();
         $fileExtension = $file->extension();
 
-        if ($originalExtension !== $fileExtension
-            || !in_array($fileExtension, $this->allowedExtensions)) {
+        if (strtolower($originalExtension) !== strtolower($fileExtension)
+            || !in_array(strtolower($fileExtension), $this->allowedExtensions)) {
             abort(500, 'Bad file extension');
         }
 
@@ -87,7 +87,7 @@ class FilepondController extends BaseController
         }
         $fileLocation = $path . DIRECTORY_SEPARATOR . $baseName;
 
-        if (!in_array(pathinfo($fileLocation, PATHINFO_EXTENSION), $this->allowedExtensions)) {
+        if (!in_array(strtolower(pathinfo($fileLocation, PATHINFO_EXTENSION)), $this->allowedExtensions)) {
             abort(500, 'Bad file extension');
         }
 
@@ -141,7 +141,7 @@ class FilepondController extends BaseController
             abort(400, 'Invalid chunk length or offset');
         }
 
-        if (!in_array(pathinfo($finalFilePath, PATHINFO_EXTENSION), $this->allowedExtensions)) {
+        if (!in_array(strtolower(pathinfo($finalFilePath, PATHINFO_EXTENSION)), $this->allowedExtensions)) {
             abort(500, 'Bad file extension');
         }
 
